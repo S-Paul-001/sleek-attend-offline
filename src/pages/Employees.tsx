@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Plus, Search, Edit, Trash2, User, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -56,12 +55,10 @@ const Employees = () => {
 
   const settings = getSettings();
 
-  // Load employees on component mount
   useEffect(() => {
     loadEmployees();
   }, []);
 
-  // Apply filters when search term or filters change
   useEffect(() => {
     filterEmployees();
   }, [searchTerm, filterDepartment, filterStatus, employees]);
@@ -75,7 +72,6 @@ const Employees = () => {
   const filterEmployees = () => {
     let result = [...employees];
 
-    // Filter by search term
     if (searchTerm) {
       result = result.filter(
         (emp) =>
@@ -85,12 +81,10 @@ const Employees = () => {
       );
     }
 
-    // Filter by department
     if (filterDepartment) {
       result = result.filter((emp) => emp.department === filterDepartment);
     }
 
-    // Filter by status
     if (filterStatus === "active") {
       result = result.filter((emp) => emp.active);
     } else if (filterStatus === "inactive") {
@@ -127,24 +121,19 @@ const Employees = () => {
     e.preventDefault();
     
     try {
-      // Validation
       if (!currentEmployee.name || !currentEmployee.department) {
         toast.error("Please fill in all required fields");
         return;
       }
       
-      // Generate ID for new employees
       if (!isEditing) {
         currentEmployee.id = uuidv4();
       }
       
-      // Save employee
       saveEmployee(currentEmployee);
       
-      // Refresh the employee list
       loadEmployees();
       
-      // Close dialog
       setDialogOpen(false);
       
     } catch (error) {
@@ -182,7 +171,7 @@ const Employees = () => {
               <SelectValue placeholder="All Departments" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Departments</SelectItem>
+              <SelectItem value="all-departments">All Departments</SelectItem>
               {settings.departments.map((dept) => (
                 <SelectItem key={dept} value={dept}>
                   {dept}
@@ -195,7 +184,7 @@ const Employees = () => {
               <SelectValue placeholder="All Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Status</SelectItem>
+              <SelectItem value="all-status">All Status</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="inactive">Inactive</SelectItem>
             </SelectContent>
