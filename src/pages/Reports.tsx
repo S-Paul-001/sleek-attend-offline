@@ -1,10 +1,9 @@
-
 import { useState } from "react";
 import { 
   Download, 
   FileJson, 
   FileText,
-  FilePdf,
+  FileType,  // Changed from FilePdf to FileType for PDF icon
   Calendar as CalendarIcon 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -165,7 +164,7 @@ const Reports = () => {
                     onCheckedChange={() => setFileType("pdf")}
                   />
                   <Label htmlFor="pdfFormat" className="flex items-center gap-1">
-                    <FilePdf className="h-4 w-4" /> PDF
+                    <FileType className="h-4 w-4" /> PDF
                   </Label>
                 </div>
               </div>
