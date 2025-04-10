@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Plus, Search, Edit, Trash2, User, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -81,7 +82,7 @@ const Employees = () => {
       );
     }
 
-    if (filterDepartment) {
+    if (filterDepartment && filterDepartment !== "all-departments") {
       result = result.filter((emp) => emp.department === filterDepartment);
     }
 
@@ -171,7 +172,7 @@ const Employees = () => {
               <SelectValue placeholder="All Departments" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all-departments">All Departments</SelectItem>
+              <SelectItem value="">All Departments</SelectItem>
               {settings.departments.map((dept) => (
                 <SelectItem key={dept} value={dept}>
                   {dept}
@@ -184,7 +185,7 @@ const Employees = () => {
               <SelectValue placeholder="All Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all-status">All Status</SelectItem>
+              <SelectItem value="">All Status</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="inactive">Inactive</SelectItem>
             </SelectContent>
