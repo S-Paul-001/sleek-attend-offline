@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { 
   Download, 
@@ -36,15 +35,13 @@ import { ExportOptions } from "@/lib/types";
 import { getEmployees, getSettings } from "@/lib/store";
 import { exportToCSV, exportToJSON, downloadCSV, downloadJSON } from "@/lib/exports";
 import { toast } from "sonner";
+import { DateRange } from "react-day-picker";
 
 const Reports = () => {
   const employees = getEmployees();
   const settings = getSettings();
   const [fileType, setFileType] = useState<"csv" | "json">("csv");
-  const [dateRange, setDateRange] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>({
+  const [dateRange, setDateRange] = useState<DateRange>({
     from: new Date(),
     to: new Date(),
   });
@@ -71,7 +68,7 @@ const Reports = () => {
   };
   
   const handleExport = () => {
-    if (!dateRange.from || !dateRange.to) {
+    if (!dateRange.from) {
       toast.error("Please select a date range");
       return;
     }
@@ -80,7 +77,7 @@ const Reports = () => {
       format: fileType,
       dateRange: {
         start: format(dateRange.from, "yyyy-MM-dd"),
-        end: format(dateRange.to || dateRange.from, "yyyy-MM-dd"),
+        end: dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : format(dateRange.from, "yyyy-MM-dd"),
       },
       includeEmployees: includeAllEmployees ? "all" : selectedEmployees,
       includeDepartments: includeAllDepartments ? "all" : selectedDepartments,
