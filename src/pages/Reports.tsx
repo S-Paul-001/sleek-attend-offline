@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { 
   Download, 
@@ -34,7 +35,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { ExportOptions } from "@/lib/types";
 import { getEmployees, getSettings } from "@/lib/store";
-import { exportToCSV, exportToJSON, downloadCSV, downloadJSON } from "@/lib/exports";
+import { exportToCSV, exportToJSON, downloadCSV, downloadJSON, downloadPDF } from "@/lib/exports";
 import { toast } from "sonner";
 import { DateRange } from "react-day-picker";
 
@@ -105,10 +106,8 @@ const Reports = () => {
         );
       } else if (fileType === "pdf") {
         const csvData = exportToCSV(options);
-        // We'll use a separate function defined in exports.ts
-        import("@/lib/exports").then(exports => {
-          exports.downloadPDF(csvData, fileName, settings.companyName);
-        });
+        // Use the downloadPDF function directly
+        downloadPDF(csvData, fileName, settings.companyName);
       }
       
       toast.success("Report exported successfully");
@@ -116,6 +115,11 @@ const Reports = () => {
       console.error("Error exporting report:", error);
       toast.error("Failed to export report");
     }
+  };
+  
+  // Handle checkbox changes for format selection
+  const handleFormatChange = (format: "pdf" | "csv" | "json") => {
+    setFileType(format);
   };
   
   return (
@@ -141,7 +145,7 @@ const Reports = () => {
                   <Checkbox
                     id="csvFormat"
                     checked={fileType === "csv"}
-                    onCheckedChange={() => setFileType("csv")}
+                    onCheckedChange={() => handleFormatChange("csv")}
                   />
                   <Label htmlFor="csvFormat" className="flex items-center gap-1">
                     <FileText className="h-4 w-4" /> CSV
@@ -151,7 +155,7 @@ const Reports = () => {
                   <Checkbox
                     id="jsonFormat"
                     checked={fileType === "json"}
-                    onCheckedChange={() => setFileType("json")}
+                    onCheckedChange={() => handleFormatChange("json")}
                   />
                   <Label htmlFor="jsonFormat" className="flex items-center gap-1">
                     <FileJson className="h-4 w-4" /> JSON
@@ -161,7 +165,7 @@ const Reports = () => {
                   <Checkbox
                     id="pdfFormat"
                     checked={fileType === "pdf"}
-                    onCheckedChange={() => setFileType("pdf")}
+                    onCheckedChange={() => handleFormatChange("pdf")}
                   />
                   <Label htmlFor="pdfFormat" className="flex items-center gap-1">
                     <FileType className="h-4 w-4" /> PDF
@@ -245,11 +249,10 @@ const Reports = () => {
                   id="allEmployees"
                   checked={includeAllEmployees}
                   onCheckedChange={(checked) => {
-                    if (checked) {
-                      setIncludeAllEmployees(true);
+                    const isChecked = !!checked;
+                    setIncludeAllEmployees(isChecked);
+                    if (isChecked) {
                       setSelectedEmployees([]);
-                    } else {
-                      setIncludeAllEmployees(false);
                     }
                   }}
                 />
@@ -266,7 +269,6 @@ const Reports = () => {
                       onCheckedChange={(checked) =>
                         handleEmployeeSelection(!!checked, emp.id)
                       }
-                      disabled={includeAllEmployees}
                     />
                     <Label htmlFor={`emp-${emp.id}`} className="flex-1">
                       <div>{emp.name}</div>
@@ -293,11 +295,10 @@ const Reports = () => {
                   id="allDepartments"
                   checked={includeAllDepartments}
                   onCheckedChange={(checked) => {
-                    if (checked) {
-                      setIncludeAllDepartments(true);
+                    const isChecked = !!checked;
+                    setIncludeAllDepartments(isChecked);
+                    if (isChecked) {
                       setSelectedDepartments([]);
-                    } else {
-                      setIncludeAllDepartments(false);
                     }
                   }}
                 />
@@ -314,7 +315,6 @@ const Reports = () => {
                       onCheckedChange={(checked) =>
                         handleDepartmentSelection(!!checked, dept)
                       }
-                      disabled={includeAllDepartments}
                     />
                     <Label htmlFor={`dept-${dept}`}>{dept}</Label>
                   </div>

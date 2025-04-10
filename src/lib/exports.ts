@@ -28,7 +28,8 @@ const processAttendance = (
   
   // Filter employees based on criteria
   const employees = allEmployees.filter(emp => {
-    const employeeMatch = includeEmployees === 'all' || includeEmployees.includes(emp.id);
+    const employeeMatch = includeEmployees === 'all' || 
+                          (Array.isArray(includeEmployees) && includeEmployees.includes(emp.id));
     const departmentMatch = includeDepartments === 'all' || 
                           (Array.isArray(includeDepartments) && includeDepartments.includes(emp.department));
     return employeeMatch && departmentMatch;
@@ -137,17 +138,17 @@ export const exportToJSON = (options: ExportOptions): string => {
 // Download helpers
 export const downloadCSV = (data: string, filename: string): void => {
   const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
-  downloadBlob(blob, filename);
+  downloadBlob(blob, `${filename}.csv`);
 };
 
 export const downloadJSON = (data: string, filename: string): void => {
   const blob = new Blob([data], { type: 'application/json' });
-  downloadBlob(blob, filename);
+  downloadBlob(blob, `${filename}.json`);
 };
 
-export const downloadPDF = (data: string, filename: string, companyName: string): void => {
+export const downloadPDF = (csvData: string, filename: string, companyName: string): void => {
   // Split the CSV data into rows
-  const rows = data.split('\n');
+  const rows = csvData.split('\n');
   const headers = rows[0].split(',');
   const tableData = rows.slice(1).map(row => row.split(','));
 
@@ -164,6 +165,7 @@ export const downloadPDF = (data: string, filename: string, companyName: string)
   doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 32);
 
   // Add table to document
+  // We need to use this different approach for TypeScript to recognize autoTable
   (doc as any).autoTable({
     head: [headers],
     body: tableData,
@@ -177,6 +179,7 @@ export const downloadPDF = (data: string, filename: string, companyName: string)
     }
   });
 
+  // Save the PDF
   doc.save(`${filename}.pdf`);
 };
 
