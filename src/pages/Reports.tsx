@@ -3,7 +3,8 @@ import { useState } from "react";
 import { 
   Download, 
   FileJson, 
-  FileText, 
+  FileText,
+  FilePdf,
   Calendar as CalendarIcon 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -41,7 +42,7 @@ import { DateRange } from "react-day-picker";
 const Reports = () => {
   const employees = getEmployees();
   const settings = getSettings();
-  const [fileType, setFileType] = useState<"csv" | "json">("csv");
+  const [fileType, setFileType] = useState<"pdf" | "csv" | "json">("csv");
   const [dateRange, setDateRange] = useState<DateRange>({
     from: new Date(),
     to: new Date(),
@@ -86,24 +87,29 @@ const Reports = () => {
     };
     
     try {
+      const fileName = `${settings.companyName.replace(/\s+/g, '_')}_attendance_${format(dateRange.from, "yyyyMMdd")}_${format(
+        dateRange.to || dateRange.from,
+        "yyyyMMdd"
+      )}`;
+      
       if (fileType === "csv") {
         const csvData = exportToCSV(options);
         downloadCSV(
           csvData,
-          `attendance_${format(dateRange.from, "yyyyMMdd")}_${format(
-            dateRange.to || dateRange.from,
-            "yyyyMMdd"
-          )}.csv`
+          `${fileName}.csv`
         );
-      } else {
+      } else if (fileType === "json") {
         const jsonData = exportToJSON(options);
         downloadJSON(
           jsonData,
-          `attendance_${format(dateRange.from, "yyyyMMdd")}_${format(
-            dateRange.to || dateRange.from,
-            "yyyyMMdd"
-          )}.json`
+          `${fileName}.json`
         );
+      } else if (fileType === "pdf") {
+        const csvData = exportToCSV(options);
+        // We'll use a separate function defined in exports.ts
+        import("@/lib/exports").then(exports => {
+          exports.downloadPDF(csvData, fileName, settings.companyName);
+        });
       }
       
       toast.success("Report exported successfully");
@@ -150,6 +156,16 @@ const Reports = () => {
                   />
                   <Label htmlFor="jsonFormat" className="flex items-center gap-1">
                     <FileJson className="h-4 w-4" /> JSON
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="pdfFormat"
+                    checked={fileType === "pdf"}
+                    onCheckedChange={() => setFileType("pdf")}
+                  />
+                  <Label htmlFor="pdfFormat" className="flex items-center gap-1">
+                    <FilePdf className="h-4 w-4" /> PDF
                   </Label>
                 </div>
               </div>

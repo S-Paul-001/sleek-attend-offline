@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Clock, Search, Edit, Trash2, FilePenLine, Check } from "lucide-react";
@@ -39,6 +38,7 @@ import {
   getSettings 
 } from "@/lib/store";
 import { toast } from "sonner";
+import { useSearchParams } from "react-router-dom";
 
 const statusOptions: { value: AttendanceStatus; label: string; color: string }[] = [
   { value: "present", label: "Present", color: "bg-green-500" },
@@ -49,8 +49,11 @@ const statusOptions: { value: AttendanceStatus; label: string; color: string }[]
 ];
 
 const Attendance = () => {
-  const [date, setDate] = useState<Date>(new Date());
-  const [formattedDate, setFormattedDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
+  const [searchParams, setSearchParams] = useSearchParams();
+  const dateParam = searchParams.get("date");
+  
+  const [date, setDate] = useState<Date>(dateParam ? new Date(dateParam) : new Date());
+  const [formattedDate, setFormattedDate] = useState<string>(dateParam || format(new Date(), "yyyy-MM-dd"));
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<Record<string, AttendanceRecord>>({});
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
@@ -58,15 +61,15 @@ const Attendance = () => {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all-status");
   
-  // Load data on component mount and when date changes
   useEffect(() => {
     loadEmployees();
     const newFormattedDate = format(date, "yyyy-MM-dd");
     setFormattedDate(newFormattedDate);
     loadAttendance(newFormattedDate);
-  }, [date]);
+    setSearchParams({ date: newFormattedDate }, { replace: true });
+  }, [date, setSearchParams]);
   
   const loadEmployees = () => {
     const allEmployees = getEmployees().filter(emp => emp.active);
@@ -79,20 +82,16 @@ const Attendance = () => {
   };
   
   const markAttendance = (employee: Employee) => {
-    // Get current time
     const now = new Date();
     const currentTime = format(now, "HH:mm");
     
-    // Check if record exists
     const existingRecord = attendanceRecords[employee.id];
     
     if (existingRecord) {
-      // Edit existing record
       setCurrentRecord(existingRecord);
       setSelectedEmployee(employee);
       setIsEditing(true);
     } else {
-      // Create new record with default values
       const workingHours = getSettings().workingHours;
       const isLate = currentTime > workingHours.start;
       
@@ -117,40 +116,26 @@ const Attendance = () => {
   const handleSaveAttendance = () => {
     if (!currentRecord || !selectedEmployee) return;
     
-    // Set last modified timestamp
     currentRecord.lastModified = new Date().toISOString();
-    
-    // Save record
     saveAttendanceRecord(currentRecord);
-    
-    // Reload attendance data
     loadAttendance(formattedDate);
-    
-    // Close dialog
     setDialogOpen(false);
   };
   
   const handleDeleteAttendance = () => {
     if (!currentRecord || !selectedEmployee) return;
     
-    // Delete record
     deleteAttendanceRecord(currentRecord.date, currentRecord.employeeId);
-    
-    // Reload attendance data
     loadAttendance(formattedDate);
-    
-    // Close dialog
     setDialogOpen(false);
   };
   
-  // Filter employees based on search term
   const filteredEmployees = employees.filter(emp => {
     const matchesSearch = !searchTerm || 
                         emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                         emp.department.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // If status filter is active, check if employee has that status
-    if (statusFilter) {
+    if (statusFilter && statusFilter !== "all-status") {
       const record = attendanceRecords[emp.id];
       return matchesSearch && record && record.status === statusFilter;
     }
@@ -310,7 +295,6 @@ const Attendance = () => {
         </Card>
       </div>
 
-      {/* Attendance Dialog */}
       {selectedEmployee && currentRecord && (
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="sm:max-w-[425px]">

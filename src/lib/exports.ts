@@ -1,6 +1,8 @@
 
 import { ExportOptions, Employee, AttendanceRecord, DailyAttendance } from "./types";
 import { getEmployees, getAttendanceByDateRange } from "./store";
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
 
 // Helper function to format date
 const formatDate = (dateString: string): string => {
@@ -141,6 +143,41 @@ export const downloadCSV = (data: string, filename: string): void => {
 export const downloadJSON = (data: string, filename: string): void => {
   const blob = new Blob([data], { type: 'application/json' });
   downloadBlob(blob, filename);
+};
+
+export const downloadPDF = (data: string, filename: string, companyName: string): void => {
+  // Split the CSV data into rows
+  const rows = data.split('\n');
+  const headers = rows[0].split(',');
+  const tableData = rows.slice(1).map(row => row.split(','));
+
+  // Create PDF document
+  const doc = new jsPDF();
+
+  // Add company name as title
+  doc.setFontSize(16);
+  doc.text(companyName, 14, 15);
+  
+  // Add report title
+  doc.setFontSize(12);
+  doc.text('Attendance Report', 14, 25);
+  doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 32);
+
+  // Add table to document
+  (doc as any).autoTable({
+    head: [headers],
+    body: tableData,
+    startY: 40,
+    theme: 'grid',
+    styles: {
+      fontSize: 8,
+    },
+    headStyles: {
+      fillColor: [66, 66, 66]
+    }
+  });
+
+  doc.save(`${filename}.pdf`);
 };
 
 const downloadBlob = (blob: Blob, filename: string): void => {
