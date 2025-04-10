@@ -208,7 +208,7 @@ const Attendance = () => {
               <SelectValue placeholder="All Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Status</SelectItem>
+              <SelectItem value="all-status">All Status</SelectItem>
               {statusOptions.map((status) => (
                 <SelectItem key={status.value} value={status.value}>
                   <div className="flex items-center">
